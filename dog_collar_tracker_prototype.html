@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Pet Tracker App — Mobile Prototype</title>
+  <style>
+    /* Mobile-first app-like styling */
+    :root{--bg:#f2f4f7;--card:#ffffff;--accent:#2563eb;--muted:#6b7280}
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;color:#0f172a;background:var(--bg)}
+    .app{max-width:460px;margin:0 auto;background:var(--bg);min-height:100vh;display:flex;flex-direction:column}
+    header{background:linear-gradient(180deg,var(--accent),#1e40af);color:#fff;padding:14px 16px;display:flex;align-items:center;gap:12px}
+    header h1{font-size:16px;margin:0}
+    main{flex:1;padding:12px}
+    .page{display:none}
+    .active{display:block}
+    .card{background:var(--card);border-radius:14px;padding:12px;box-shadow:0 6px 18px rgba(2,6,23,0.06);margin-bottom:12px}
+    .btn{display:inline-block;background:var(--accent);color:#fff;padding:10px 12px;border-radius:10px;text-align:center;text-decoration:none;border:none;font-weight:600}
+    .btn.ghost{background:transparent;color:var(--accent);border:1px solid rgba(37,99,235,0.12)}
+    .footerNav{position:sticky;bottom:0;background:var(--card);display:flex;border-top-left-radius:12px;border-top-right-radius:12px;padding:8px;gap:8px;box-shadow:0 -6px 20px rgba(2,6,23,0.06)}
+    .navBtn{flex:1;padding:10px;border-radius:10px;background:transparent;border:none;font-weight:600}
+    .list{list-style:none;padding:0;margin:0}
+    .list li{padding:10px;border-radius:10px;border:1px solid #eef2f6;margin-bottom:8px;background:#fff;display:flex;gap:10px;align-items:center}
+    .avatar{width:56px;height:56px;border-radius:10px;overflow:hidden;background:#eef2f6;display:flex;align-items:center;justify-content:center}
+    .avatar img{width:100%;height:100%;object-fit:cover}
+    label{display:block;font-size:13px;margin-top:8px;color:var(--muted)}
+    input[type=text], input[type=email]{width:100%;padding:10px;border-radius:10px;border:1px solid #e6eefb}
+    .row{display:flex;gap:8px}
+    .muted{color:var(--muted);font-size:13px}
+    .small{font-size:13px;color:var(--muted)}
+    .center{text-align:center}
+    .pill{padding:6px 8px;border-radius:999px;background:#f1f5f9;color:var(--muted);font-size:12px}
+
+    /* Modal */
+    .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(2,6,23,0.4);z-index:40}
+    .modal.active{display:flex}
+    .modalCard{background:var(--card);padding:12px;border-radius:12px;width:92%;max-width:420px}
+
+    @media(min-width:700px){.app{border-radius:12px;box-shadow:0 20px 50px rgba(2,6,23,0.12);margin:20px auto}}
+    body.dark-mode {--bg: #1e293b;--card: #334155;--accent: #3b82f6;--muted: #cbd5e1;color: #f1f5f9;background: var(--bg);}
+    body.dark-mode.card,
+    body.dark-mode header,
+    body.dark-mode.footerNav{background: var(--card);color: #f8fafc;}
+    body.dark-mode input,
+    body.dark-mode select {background: #475569;color: #f1f5f9;border: 1px solid #64748b;}
+  </style>
+</head>
+<body>
+  <div class="app" role="application">
+    <header>
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3c-1.657 0-3 1.343-3 3 0 1.657 1.343 3 3 3s3-1.343 3-3c0-1.657-1.343-3-3-3zm6.5 8.5c-.828 0-1.5.672-1.5 1.5 0 .828.672 1.5 1.5 1.5S20 13.828 20 13c0-.828-.672-1.5-1.5-1.5zM5.5 11.5C4.672 11.5 4 12.172 4 13c0 .828.672 1.5 1.5 1.5S7 13.828 7 13c0-.828-.672-1.5-1.5-1.5zM7 17.25c0 1.105.895 2 2 2h6c1.105 0 2-.895 2-2v-.75H7V17.25z" fill="#fff"/></svg>
+      <h1>Pet Tracker</h1>
+      <div style="margin-left:auto;color:rgba(255,255,255,0.92);font-size:13px">Demo</div>
+    </header>
+
+    <main>
+      <!-- HOME -->
+      <section id="homePage" class="page active">
+        <div class="card center">
+          <h2 style="margin:6px 0">Welcome</h2>
+          <p class="muted">Quickly connect to your pet's tracker or manage collars.</p>
+          <div style="margin-top:12px;display:flex;gap:8px">
+            <button class="btn" style="flex:1" onclick="openConnectModal()">Connect</button>
+            <button class="btn ghost" style="flex:1" onclick="showPage('scanPage')">Scan</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 style="margin:0 0 8px">Quick actions</h3>
+          <div style="display:flex;gap:8px">
+            <button class="btn ghost" onclick="showPage('collarsPage')">Manage Collars</button>
+            <button class="btn ghost" onclick="downloadApp()">Download HTML</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 style="margin:0 0 8px">Nearby collars</h3>
+          <ul id="homeNearby" class="list"></ul>
+          <div class="small muted">Your saved collars will appear here for quick connect.</div>
+        </div>
+      </section>
+
+      <!-- CONNECTING (transitional) -->
+      <section id="connectingPage" class="page">
+        <div class="card center">
+          <h2 style="margin:6px 0">Connecting...</h2>
+          <p class="muted" id="connectingText">Attempting to link with tracker</p>
+          <div style="margin-top:14px" id="connectSpinner">🔄</div>
+        </div>
+      </section>
+
+      <!-- PET INFO -->
+      <section id="petInfoPage" class="page">
+        <div class="card" id="petInfoCard">
+          <div style="display:flex;gap:12px;align-items:center">
+            <div class="avatar" id="petInfoAvatar">No Img</div>
+            <div>
+              <div style="font-weight:700" id="petInfoName">—</div>
+              <div class="muted" id="petInfoBreed">—</div>
+              <div class="small muted" style="margin-top:6px">Tracker ID: <span id="petInfoId">—</span></div>
+            </div>
+          </div>
+
+          <div style="margin-top:12px">
+            <p style="margin:6px 0"><strong>Owner:</strong> <span id="petInfoOwner">—</span></p>
+            <p style="margin:6px 0"><strong>Phone:</strong> <a id="petInfoPhone" href="#">—</a></p>
+            <p style="margin:6px 0"><strong>Notes:</strong> <span id="petInfoNotes">—</span></p>
+          </div>
+
+          <div style="margin-top:12px;display:flex;gap:8px">
+            <button class="btn" onclick="alert('Contact flow')">Contact Owner</button>
+            <button class="btn ghost" onclick="showPage('homePage')">Done</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- COLLARS -->
+      <section id="collarsPage" class="page">
+        <div class="card">
+          <h3 style="margin:0 0 8px">Connected Collars</h3>
+          <ul id="collarList" class="list"></ul>
+          <div class="small muted">Tap a collar to view details.</div>
+        </div>
+
+        <div class="card">
+          <h3 style="margin:0 0 8px">Add Collar</h3>
+          <label>Pet name</label>
+          <input type="text" id="petNameInput" placeholder="Buddy" />
+          <label>Tracker ID</label>
+          <input type="text" id="trackerIdInput" placeholder="ABCD-1234" />
+          <label>Owner name</label>
+          <input type="text" id="ownerNameInput" placeholder="John Doe" />
+          <label>Owner phone</label>
+          <input type="text" id="ownerPhoneInput" placeholder="(555) 555-5555" />
+          <label>Notes</label>
+          <input type="text" id="notesInput" placeholder="Allergic to peanuts" />
+          <label class="small">Photo (optional)</label>
+          <input type="file" id="collarPhotoInput" accept="image/*" />
+          <div style="margin-top:10px"><button class="btn" onclick="handleAddCollar()">Add Collar</button></div>
+        </div>
+      </section>
+
+      <!-- SCAN (lost pet scenario) -->
+      <section id="scanPage" class="page">
+        <div class="card">
+          <h3 style="margin:0 0 8px">Scan / Lost Pet</h3>
+          <p class="muted">Simulate scanning a QR/NFC collar. Choose a tracker ID or type one manually.</p>
+          <label>Choose saved collar</label>
+          <select id="scanSelect"><option value="">-- pick --</option></select>
+          <label>Or enter tracker ID</label>
+          <input type="text" id="scanManual" placeholder="ABCD-1234" />
+          <div style="margin-top:10px;display:flex;gap:8px">
+            <button class="btn" onclick="simulateScan()">Scan</button>
+            <button class="btn ghost" onclick="showPage('homePage')">Cancel</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- SETTINGS -->
+    <section id="settingsPage" class="page">
+      <div class="card">
+      <h3>👤 Owner Profile</h3>
+      <label>Name:</label>
+      <input id="ownerName" type="text" placeholder="Your name">
+    
+      <label>Email:</label>
+      <input id="ownerEmail" type="email" placeholder="you@example.com">
+    
+      <label>Phone:</label>
+      <input id="ownerPhone" type="tel" placeholder="+1 555 000 0000">
+    
+      <label>Emergency Contact:</label>
+      <input id="ownerEmergency" type="text" placeholder="Contact Person">
+    
+      <button class="btn" onclick="saveProfile()">💾 Save Profile</button>
+    </div>
+    
+      <div class="card">
+        <h3>🌓 Appearance</h3>
+        <label class="toggle-container">
+          Dark Mode
+          <input type="checkbox" id="darkModeToggle" onchange="toggleDarkMode()">
+        </label>
+      </div>
+    
+      <div class="card">
+        <h3>🔒 Privacy & Security</h3>
+        <button class="btn ghost">Change Password</button>
+        <button class="btn ghost">Enable Two-Factor Authentication</button>
+        <button class="btn ghost">Manage Data Permissions</button>
+      </div>
+    
+      <div class="card">
+        <h3>🌐 Language & Region</h3>
+        <select id="languageSelector">
+          <option>English</option>
+          <option>Spanish</option>
+          <option>French</option>
+          <option>German</option>
+        </select>
+      </div>
+    
+      <div class="card">
+        <h3>🔁 Sync & Backup</h3>
+        <button class="btn ghost" onclick="alert('Syncing...')">📤 Sync Now</button>
+        <label class="toggle-container">
+          Auto Cloud Backup
+          <input type="checkbox" id="backupToggle">
+        </label>
+      </div>
+    
+      <div class="card">
+        <h3>ℹ️ About</h3>
+        <p>Pet Tracker App v1.0.2</p>
+        <button class="btn ghost">Terms of Service</button>
+        <button class="btn ghost">Privacy Policy</button>
+      </div>
+    
+      <button class="btn" style="width:100%;background:red" onclick="alert('Logged Out')">🚪 Log Out</button>
+    </section>
+      
+    </main>
+
+    <div class="footerNav">
+      <button class="navBtn" onclick="showPage('homePage')">Home</button>
+      <button class="navBtn" onclick="showPage('collarsPage')">Collars</button>
+      <button class="navBtn" onclick="showPage('scanPage')">Scan</button>
+      <button class="navBtn" onclick="showPage('settingsPage')">Settings</button>
+    </div>
+
+  <!-- Connect modal -->
+  <div id="connectModal" class="modal" aria-hidden="true">
+    <div class="modalCard">
+      <h4 style="margin:6px 0">Choose collar to connect</h4>
+      <ul id="connectList" class="list"></ul>
+      <div style="display:flex;gap:8px;margin-top:10px"><button class="btn" onclick="closeConnectModal()">Cancel</button></div>
+    </div>
+  </div>
+
+  <script>
+    // Storage key
+    const STORAGE_KEY = 'petTrackers_v1'
+
+    // Current selected collar id during connect
+    let currentConnectId = null
+
+    // Utilities
+    function showPage(id){
+      document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'))
+      const el = document.getElementById(id)
+      if(el) el.classList.add('active')
+      // refresh some UI parts when pages change
+      if(id === 'collarsPage') renderCollarList()
+      if(id === 'homePage') renderNearby()
+      if(id === 'scanPage') populateScanSelect()
+    }
+
+    function saveToStorage(items){ localStorage.setItem(STORAGE_KEY, JSON.stringify(items)) }
+    function loadFromStorage(){ try{ return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]') }catch(e){return []} }
+
+    // Render list in Collars page
+    function renderCollarList(){
+      const list = document.getElementById('collarList')
+      list.innerHTML = ''
+      const items = loadFromStorage()
+      items.forEach(item=>{
+        const li = document.createElement('li')
+        const avatar = document.createElement('div'); avatar.className='avatar'
+        if(item.photo){ const img = document.createElement('img'); img.src = item.photo; avatar.appendChild(img) }
+        else { avatar.textContent = '🐾' }
+        const content = document.createElement('div')
+        content.style.flex='1'
+        content.innerHTML = `<div style="font-weight:700">${escapeHtml(item.petName)}</div><div class="small muted">${escapeHtml(item.trackerId)}</div>`
+        const btnWrap = document.createElement('div')
+        btnWrap.style.marginLeft='8px'
+        const viewBtn = document.createElement('button'); viewBtn.className='btn ghost'; viewBtn.textContent='View';
+        viewBtn.onclick = ()=>{ openPetInfo(item.trackerId) }
+        btnWrap.appendChild(viewBtn)
+
+        li.appendChild(avatar); li.appendChild(content); li.appendChild(btnWrap)
+        list.appendChild(li)
+      })
+    }
+
+    function renderNearby(){
+      const el = document.getElementById('homeNearby'); el.innerHTML=''
+      const items = loadFromStorage()
+      if(items.length === 0){ el.innerHTML = '<li class="small muted">No collars saved yet.</li>'; return }
+      // show up to 3
+      items.slice(0,3).forEach(i=>{
+        const li = document.createElement('li'); li.className='';
+        li.innerHTML = `<div style="display:flex;gap:8px;align-items:center"><div class="avatar">${i.photo?'<img src="'+i.photo+'"/>':'🐶'}</div><div style="flex:1"><div style="font-weight:700">${escapeHtml(i.petName)}</div><div class="small muted">${escapeHtml(i.trackerId)}</div></div><button class="btn" onclick="openPetInfo('${i.trackerId}')">Open</button></div>`
+        el.appendChild(li)
+      })
+    }
+
+    function escapeHtml(s){ return (s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') }
+
+    // Add collar (reads optional photo)
+    function handleAddCollar(){
+      const petName = document.getElementById('petNameInput').value.trim()
+      const trackerId = document.getElementById('trackerIdInput').value.trim()
+      const owner = document.getElementById('ownerNameInput').value.trim()
+      const phone = document.getElementById('ownerPhoneInput').value.trim()
+      const notes = document.getElementById('notesInput').value.trim()
+      if(!petName || !trackerId){ alert('Please provide pet name and tracker ID'); return }
+      const file = document.getElementById('collarPhotoInput').files[0]
+      if(file){
+        const reader = new FileReader()
+        reader.onload = function(e){ saveCollar({petName, trackerId, owner, phone, notes, photo: e.target.result}) }
+        reader.readAsDataURL(file)
+      } else {
+        saveCollar({petName, trackerId, owner, phone, notes, photo: null})
+      }
+    }
+
+    function saveCollar(obj){
+      const items = loadFromStorage()
+      // prevent duplicate tracker IDs
+      if(items.find(x=>x.trackerId === obj.trackerId)){ alert('A collar with that Tracker ID already exists'); return }
+      items.push(obj)
+      saveToStorage(items)
+      // reset form
+      document.getElementById('petNameInput').value=''
+      document.getElementById('trackerIdInput').value=''
+      document.getElementById('ownerNameInput').value=''
+      document.getElementById('ownerPhoneInput').value=''
+      document.getElementById('notesInput').value=''
+      document.getElementById('collarPhotoInput').value=null
+      renderCollarList()
+      populateConnectList()
+      populateScanSelect()
+      alert('Collar saved')
+    }
+
+    // Open pet info by trackerId
+    function openPetInfo(trackerId){
+      const items = loadFromStorage()
+      const item = items.find(i=>i.trackerId === trackerId)
+      if(!item){ alert('Collar not found'); return }
+      // populate pet info page
+      document.getElementById('petInfoName').textContent = item.petName
+      document.getElementById('petInfoBreed').textContent = item.notes || ''
+      document.getElementById('petInfoId').textContent = item.trackerId
+      document.getElementById('petInfoOwner').textContent = item.owner || '—'
+      const phoneEl = document.getElementById('petInfoPhone'); phoneEl.textContent = item.phone || '—'; phoneEl.href = 'tel:' + (item.phone || '')
+      document.getElementById('petInfoNotes').textContent = item.notes || '—'
+      const avatar = document.getElementById('petInfoAvatar'); avatar.innerHTML = ''
+      if(item.photo){ const img = document.createElement('img'); img.src = item.photo; img.alt = item.petName; avatar.appendChild(img) } else { avatar.textContent = '🐾' }
+
+      // set last connected (simulate connection history)
+      currentConnectId = trackerId
+      showPage('petInfoPage')
+    }
+
+    // Connect modal flows
+    function openConnectModal(){ populateConnectList(); document.getElementById('connectModal').classList.add('active'); document.getElementById('connectModal').setAttribute('aria-hidden','false') }
+    function closeConnectModal(){ document.getElementById('connectModal').classList.remove('active'); document.getElementById('connectModal').setAttribute('aria-hidden','true') }
+
+    function populateConnectList(){
+      const wrap = document.getElementById('connectList'); wrap.innerHTML=''
+      const items = loadFromStorage()
+      if(items.length === 0){ wrap.innerHTML = '<li class="small muted">No collars — add one on the Collars page.</li>'; return }
+      items.forEach(it=>{
+        const li = document.createElement('li')
+        li.style.display='flex'; li.style.gap='8px'; li.style.alignItems='center'
+        li.innerHTML = `<div class="avatar">${it.photo?'<img src="'+it.photo+'"/>':'🐶'}</div><div style="flex:1"><div style="font-weight:700">${escapeHtml(it.petName)}</div><div class="small muted">${escapeHtml(it.trackerId)}</div></div>`
+        const btn = document.createElement('button'); btn.className='btn'; btn.textContent='Connect'; btn.onclick = ()=>{ connectTo(it.trackerId) }
+        li.appendChild(btn); wrap.appendChild(li)
+      })
+    }
+
+    function connectTo(trackerId){ closeConnectModal(); showPage('connectingPage'); document.getElementById('connectingText').textContent = 'Connecting to ' + trackerId + '...'
+      setTimeout(()=>{ openPetInfo(trackerId) }, 2200)
+    }
+
+    // Scan simulation
+    function populateScanSelect(){
+      const sel = document.getElementById('scanSelect'); sel.innerHTML = '<option value="">-- pick --</option>'
+      loadFromStorage().forEach(i=>{ const opt = document.createElement('option'); opt.value = i.trackerId; opt.textContent = i.petName + ' — ' + i.trackerId; sel.appendChild(opt) })
+    }
+
+    function simulateScan(){
+      const sel = document.getElementById('scanSelect').value
+      const manual = document.getElementById('scanManual').value.trim()
+      const id = sel || manual
+      if(!id){ alert('Please choose or enter a tracker ID to scan'); return }
+      // pretend we scanned and display info (reuse openPetInfo)
+      openPetInfo(id)
+    }
+
+    // Settings
+    function saveSettings(){ localStorage.setItem('petTrackerUser', JSON.stringify({username: document.getElementById('usernameInput').value, email: document.getElementById('emailInput').value})); alert('Settings saved') }
+    // 📝 Save Owner Profile to localStorage
+function saveProfile() {
+  const profile = {
+    name: document.getElementById("ownerName").value,
+    email: document.getElementById("ownerEmail").value,
+    phone: document.getElementById("ownerPhone").value,
+    emergency: document.getElementById("ownerEmergency").value
+  };
+  localStorage.setItem("ownerProfile", JSON.stringify(profile));
+  alert("Profile Saved!");
+}
+
+// 📥 Load profile when settings page opens
+function loadProfile() {
+  const data = JSON.parse(localStorage.getItem("ownerProfile"));
+  if (data) {
+    document.getElementById("ownerName").value = data.name || "";
+    document.getElementById("ownerEmail").value = data.email || "";
+    document.getElementById("ownerPhone").value = data.phone || "";
+    document.getElementById("ownerEmergency").value = data.emergency || "";
+  }
+}
+
+// 🌗 Dark Mode Toggle
+function toggleDarkMode() {
+  const isDark = document.getElementById("darkModeToggle").checked;
+  document.body.classList.toggle("dark-mode", isDark);
+  localStorage.setItem("darkMode", isDark);
+}
+
+// 💾 Load dark mode state
+function loadDarkMode() {
+  const enabled = localStorage.getItem("darkMode") === "true";
+  document.body.classList.toggle("dark-mode", enabled);
+  document.getElementById("darkModeToggle").checked = enabled;
+}
+
+// 🚀 Load settings on open
+function setupSettingsPage() {
+  loadProfile();
+  loadDarkMode();
+}
+
+window.onload = setupSettingsPage;
+
+    // Download current HTML as file
+    function downloadApp(){
+      const html = `<!doctype html>
+${document.documentElement.outerHTML}`;
+      const blob = new Blob([html], {type: 'text/html'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = 'pet-tracker-prototype.html';
+      document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    }
+
+    // initialization
+    (function init(){
+      renderCollarList(); renderNearby(); populateConnectList(); populateScanSelect(); loadDarkMode(); loadProfile();
+      // load settings
+      const user = JSON.parse(localStorage.getItem('petTrackerUser') || 'null')
+      if(user){ document.getElementById('usernameInput').value = user.username || '' ; document.getElementById('emailInput').value = user.email || '' }
+
+      // small sample if empty
+      if(loadFromStorage().length === 0){
+        saveCollar({petName:'Buddy', trackerId:'BUDDY-001', owner:'Alex Johnson', phone:'(555) 123-4567', notes:'Friendly', photo:null})
+        saveCollar({petName:'Luna', trackerId:'LUNA-002', owner:'Maria', phone:'(555) 987-6543', notes:'Shy', photo:null})
+      }
+    })()
+    // 📝 Save Owner Profile
+    function saveProfile() {
+      const profile = {
+        name: document.getElementById("ownerName").value,
+        email: document.getElementById("ownerEmail").value,
+        phone: document.getElementById("ownerPhone").value,
+        emergency: document.getElementById("ownerEmergency").value,
+        language: document.getElementById("languageSelector").value,
+        autoBackup: document.getElementById("backupToggle").checked
+      };
+      localStorage.setItem("ownerProfile", JSON.stringify(profile));
+      alert("Profile Saved!");
+    }
+    
+    // 📥 Load Profile
+    function loadProfile() {
+      const data = JSON.parse(localStorage.getItem("ownerProfile"));
+      if (data) {
+        document.getElementById("ownerName").value = data.name || "";
+        document.getElementById("ownerEmail").value = data.email || "";
+        document.getElementById("ownerPhone").value = data.phone || "";
+        document.getElementById("ownerEmergency").value = data.emergency || "";
+        document.getElementById("languageSelector").value = data.language || "English";
+        document.getElementById("backupToggle").checked = data.autoBackup || false;
+      }
+    }
+    
+    // 🌗 Dark Mode Toggle
+    function toggleDarkMode() {
+      const isDark = document.getElementById("darkModeToggle").checked;
+      document.body.classList.toggle("dark-mode", isDark);
+      localStorage.setItem("darkMode", isDark);
+    }
+    
+    // 💾 Load dark mode state
+    function loadDarkMode() {
+      const enabled = localStorage.getItem("darkMode") === "true";
+      document.body.classList.toggle("dark-mode", enabled);
+      document.getElementById("darkModeToggle").checked = enabled;
+    }
+    
+    // 🚀 Load settings automatically
+    function setupSettingsPage() {
+      loadProfile();
+      loadDarkMode();
+    }
+    function syncData() {
+    alert("📤 Syncing to cloud...");
+    }
+    window.onload = setupSettingsPage;
+  </script>
+</body>
+</html>
